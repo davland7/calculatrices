@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur d'impact des frais de gestion (RFG)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        loss: '#e74c3c', 
+                        accent: '#2ecc71', // Nouveau vert pour l'action corrective
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        
+        <div class="bg-slate-800 p-6 text-center">
+            <h1 class="text-2xl font-bold text-white mb-1">Impact des Frais de Gestion</h1>
+            <p class="text-slate-400 text-sm">Combien les frais de fonds communs vous coûtent-ils vraiment?</p>
+        </div>
+
+        <div class="p-6 space-y-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <div>
+                    <label for="initialCapital" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Capital initial ($)
+                    </label>
+                    <input type="number" id="initialCapital" placeholder="100000" value="100000" oninput="calculerFrais()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 rounded-lg focus:outline-none focus:bg-white focus:border-accent transition-colors">
+                </div>
+                
+                <div>
+                    <label for="feeRate" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Taux de frais (RFG en %)
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="feeRate" placeholder="2.36" value="2.36" step="0.01" oninput="calculerFrais()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 pl-4 pr-10 rounded-lg focus:outline-none focus:bg-white focus:border-accent transition-colors">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500">%</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="grossReturn" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Rendement brut estimé (%)
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="grossReturn" placeholder="6.0" value="6.0" step="0.1" oninput="calculerFrais()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 pl-4 pr-10 rounded-lg focus:outline-none focus:bg-white focus:border-accent transition-colors">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500">%</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="years" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Horizon de temps (années)
+                    </label>
+                    <input type="number" id="years" placeholder="25" value="25" oninput="calculerFrais()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 rounded-lg focus:outline-none focus:bg-white focus:border-accent transition-colors">
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-xl p-5 border border-slate-100 space-y-4 mt-6">
+                
+                <h3 class="text-lg font-bold text-slate-700 border-b border-slate-200 pb-2 mb-3">Impact Financier sur le Terme</h3>
+
+                <div class="flex justify-between items-center text-base">
+                    <span class="text-slate-500">Montant payé en frais (estimation) :</span>
+                    <span id="fraisTotaux" class="font-bold text-loss">0,00 $</span>
+                </div>
+
+                <div class="flex justify-between items-center text-base">
+                    <span class="text-slate-500">Perte totale en croissance manquée :</span>
+                    <span id="perteCroissance" class="font-bold text-loss">0,00 $</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 border border-red-200 shadow-md space-y-4 mt-6">
+                 <h3 class="text-lg font-bold text-red-700 border-b border-red-200 pb-2 mb-3">Action Corrective (Frais de l'Année 1)</h3>
+
+                 <div class="flex justify-between items-center text-lg">
+                    <span class="font-bold text-slate-800">Compensation Annuelle Totale :</span>
+                    <span id="compensationAnnuelleBase" class="text-xl font-extrabold text-red-600">0,00 $</span>
+                </div>
+
+                 <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="frequency" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Fréquence de versement
+                        </label>
+                        <div class="relative">
+                            <select id="frequency" onchange="calculerFrais()" class="w-full appearance-none bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-accent transition-colors cursor-pointer">
+                                <option value="1">Annuel</option>
+                                <option value="12">Mensuel</option>
+                                <option value="26">Aux 2 semaines</option>
+                                <option value="52">Hebdomadaire</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-700">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Montant à ajouter par période
+                        </label>
+                        <div class="bg-accent/10 border border-accent/30 rounded-lg p-3 text-center h-full flex items-center justify-center">
+                            <span id="montantParPeriode" class="text-2xl font-extrabold text-accent">0,00 $</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-xs text-center text-slate-500 mt-4">
+                La compensation périodique est le montant nécessaire pour couvrir les frais de gestion annuels de la première année de votre capital initial.
+            </div>
+
+        </div>
+    </div>
+
+<script>
+    function calculerFrais() {
+        // --- 1. Récupération des valeurs ---
+        let P = parseFloat(document.getElementById('initialCapital').value) || 0; // Capital initial
+        let R_fee = (parseFloat(document.getElementById('feeRate').value) / 100) || 0; // Taux de frais (RFG)
+        let R_gross = (parseFloat(document.getElementById('grossReturn').value) / 100) || 0; // Rendement brut
+        let T = parseInt(document.getElementById('years').value) || 0; // Horizon de temps (années)
+        let Freq = parseInt(document.getElementById('frequency').value) || 1; // Fréquence de versement (1, 12, 26, 52)
+
+        // Taux net (Rendement brut - Frais)
+        let R_net = R_gross - R_fee;
+
+        // Fonction de formatage
+        const fmt = new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' });
+
+        // --- 2. Calculs d'impact à long terme ---
+        let FV_gross = P * Math.pow(1 + R_gross, T);
+        let FV_net = P * Math.pow(1 + R_net, T);
+        let perteTotale = FV_gross - FV_net;
+        let fraisSimples = P * R_fee * T; // Estimation simple des frais payés (sans croissance composée)
+
+        // --- 3. Calcul de la compensation annuelle (Année 1) ---
+        let compensationAnnuelle = P * R_fee;
+        
+        // --- 4. Calcul du montant par période ---
+        let montantParPeriode = compensationAnnuelle / Freq;
+
+        // --- Mise à jour du DOM (Impact à long terme) ---
+        document.getElementById('fraisTotaux').innerText = fmt.format(fraisSimples);
+        document.getElementById('perteCroissance').innerText = fmt.format(perteTotale);
+
+        // --- Mise à jour du DOM (Compensation) ---
+        document.getElementById('compensationAnnuelleBase').innerText = fmt.format(compensationAnnuelle);
+        document.getElementById('montantParPeriode').innerText = fmt.format(montantParPeriode);
+
+        // --- Gestion des couleurs pour la clarté ---
+        const perteElements = [document.getElementById('fraisTotaux'), document.getElementById('perteCroissance')];
+        perteElements.forEach(el => {
+            el.classList.remove('text-loss', 'text-slate-800');
+            el.classList.add(P === 0 ? 'text-slate-800' : 'text-loss');
+        });
+    }
+
+    // Initialisation
+    calculerFrais();
+</script>
+
+</body>
+</html>
