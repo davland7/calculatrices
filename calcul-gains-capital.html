@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur d'Impôt sur les Gains ou Pertes en Capital (QC 2025)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        capital: '#3498db', // Bleu pour l'impôt/gain
+                        loss: '#e74c3c', // Rouge pour la perte
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        
+        <div class="bg-slate-800 p-6 text-center">
+            <h1 class="text-2xl font-bold text-white mb-1">Calculateur Gains/Pertes en Capital</h1>
+            <p class="text-slate-400 text-sm">Estimation de l'impact fiscal (QC + Fédéral 2025)</p>
+        </div>
+
+        <div class="p-6 space-y-6">
+            
+            <div>
+                <label for="bracket" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Votre revenu imposable total (avant le gain)
+                </label>
+                <div class="relative">
+                    <select id="bracket" onchange="calculerCapital()" class="w-full appearance-none bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-capital transition-colors cursor-pointer">
+                        <option value="0.2611">Moins de 53 255 $ (Taux ~26,11%)</option>
+                        <option value="0.3111">53 255 $ à 57 375 $ (Taux ~31,11%)</option>
+                        <option value="0.3612" selected>57 375 $ à 106 495 $ (Taux ~36,12%)</option>
+                        <option value="0.4112">106 495 $ à 114 750 $ (Taux ~41,12%)</option>
+                        <option value="0.4571">114 750 $ à 129 590 $ (Taux ~45,71%)</option>
+                        <option value="0.4746">129 590 $ à 177 882 $ (Taux ~47,46%)</option>
+                        <option value="0.4997">177 882 $ à 253 414 $ (Taux ~49,97%)</option>
+                        <option value="0.5331">Plus de 253 414 $ (Taux ~53,31%)</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-700">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4 border border-slate-200 p-4 rounded-lg bg-slate-50">
+                <p class="font-bold text-slate-700 text-sm">Transaction en cours</p>
+                <div>
+                    <label for="sellingPrice" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Prix de vente (Produit de disposition) ($)
+                    </label>
+                    <input type="number" id="sellingPrice" placeholder="Ex: 50000" oninput="calculerCapital()" class="w-full bg-white border border-slate-300 text-slate-700 py-3 px-4 rounded-lg focus:outline-none focus:bg-white focus:border-capital transition-colors">
+                </div>
+
+                <div>
+                    <label for="costBasis" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Coût initial (Prix de base rajusté) ($)
+                    </label>
+                    <input type="number" id="costBasis" placeholder="Ex: 20000" oninput="calculerCapital()" class="w-full bg-white border border-slate-300 text-slate-700 py-3 px-4 rounded-lg focus:outline-none focus:bg-white focus:border-capital transition-colors">
+                </div>
+            </div>
+
+            <div>
+                <label for="lossCarryover" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Pertes en capital nettes disponibles (Antérieures) ($)
+                </label>
+                <input type="number" id="lossCarryover" placeholder="Ex: 646 (si vous avez des pertes à reporter)" value="0" oninput="calculerCapital()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 rounded-lg focus:outline-none focus:bg-white focus:border-capital transition-colors">
+            </div>
+
+            <div id="resultBox" class="rounded-xl p-5 space-y-3 mt-6 border">
+                
+                <h3 class="text-lg font-bold text-slate-700 border-b border-slate-200 pb-2 mb-3">Résultats Fiscaux</h3>
+
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-500">Gain ou Perte en capital **NET** à déclarer :</span>
+                    <span id="gainTotalNet" class="font-medium text-slate-800">0,00 $</span>
+                </div>
+
+                <div class="flex justify-between items-center text-xs text-green-700 bg-green-50 p-2 rounded-lg">
+                    <span class="font-semibold">Pertes antérieures utilisées :</span>
+                    <span id="perteUtilisee" class="font-bold text-green-800">0,00 $</span>
+                </div>
+
+                <div id="inclusionLine" class="flex justify-between items-center text-sm p-2 rounded-lg">
+                    <span id="inclusionLabel" class="font-semibold">Montant Imposable (50% de l'inclusion) :</span>
+                    <span id="montantImposable" class="font-bold">0,00 $</span>
+                </div>
+
+                <div class="border-t border-slate-200 my-2"></div>
+                
+                <div class="pt-2 mt-2 border-t border-slate-200">
+                    <div class="flex justify-between items-center">
+                        <span id="impotLabel" class="font-bold text-slate-800">Impôt estimé à payer (QC+Féd)</span>
+                        <span id="impotPayer" class="text-2xl font-extrabold text-capital">0,00 $</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-bulle bg-yellow-50 text-yellow-800 p-3 rounded-lg text-xs border border-yellow-200">
+                **Note :** Le calcul compense automatiquement tout gain brut par vos pertes disponibles, réduisant ainsi l'impôt à payer.
+            </div>
+        </div>
+    </div>
+
+<script>
+    function calculerCapital() {
+        // Récupération des valeurs
+        let sellingPrice = parseFloat(document.getElementById('sellingPrice').value) || 0;
+        let costBasis = parseFloat(document.getElementById('costBasis').value) || 0;
+        let lossCarryover = parseFloat(document.getElementById('lossCarryover').value) || 0; // Nouvelles pertes disponibles
+        let tmi = parseFloat(document.getElementById('bracket').value) || 0; // Taux Marginal d'Imposition (TMI)
+
+        // Fonction de formatage
+        const fmt = new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' });
+
+        // 1. Calcul du Gain ou de la Perte BRUT (transaction actuelle)
+        let gainOuPerteBrut = sellingPrice - costBasis;
+        let pertesUtilisees = 0;
+
+        // 2. Calcul du Gain ou Perte NET après compensation
+        let gainOuPerteNet = gainOuPerteBrut;
+
+        if (gainOuPerteBrut > 0) {
+            // S'il y a un gain brut, on utilise les pertes reportées
+            if (lossCarryover > 0) {
+                let pertePossible = lossCarryover;
+                if (pertePossible >= gainOuPerteBrut) {
+                    // Les pertes couvrent tout le gain
+                    pertesUtilisees = gainOuPerteBrut;
+                    gainOuPerteNet = 0;
+                } else {
+                    // Les pertes couvrent une partie du gain
+                    pertesUtilisees = pertePossible;
+                    gainOuPerteNet = gainOuPerteBrut - pertePossible;
+                }
+            }
+        }
+
+        // 3. Montant Imposable / Déductible (50% de l'inclusion)
+        let montantInclusion = gainOuPerteNet * 0.50;
+
+        // 4. Calcul de l'impact fiscal (Impôt à payer ou Crédit/Déduction)
+        let impactFiscal = montantInclusion * tmi;
+        
+        // 5. Calcul du Taux effectif (TMI * 50%)
+        let tauxEffectif = tmi * 0.50 * 100;
+
+        // --- Mise à jour de l'affichage ---
+        document.getElementById('gainTotalNet').innerText = fmt.format(gainOuPerteNet);
+        document.getElementById('montantImposable').innerText = fmt.format(Math.abs(montantInclusion));
+        document.getElementById('impotPayer').innerText = fmt.format(Math.abs(impactFiscal));
+        document.getElementById('tauxEffectif').innerText = tauxEffectif.toFixed(2) + "%";
+        document.getElementById('perteUtilisee').innerText = fmt.format(pertesUtilisees);
+
+        // --- Logique d'affichage Gain vs Perte ---
+        const inclusionLine = document.getElementById('inclusionLine');
+        const impotLabel = document.getElementById('impotLabel');
+        const impotPayerEl = document.getElementById('impotPayer');
+        const resultBox = document.getElementById('resultBox');
+
+        // Réinitialisation des classes
+        inclusionLine.className = 'flex justify-between items-center text-sm p-2 rounded-lg';
+        resultBox.classList.remove('bg-red-50', 'border-red-200', 'bg-blue-50', 'border-blue-200');
+        impotPayerEl.classList.remove('text-capital', 'text-loss', 'text-slate-800');
+
+        if (gainOuPerteNet > 0) {
+            // C'est un gain NET
+            inclusionLine.classList.add('bg-blue-50');
+            document.getElementById('inclusionLabel').innerText = "Montant Imposable (50% du Gain Net) :";
+            impotLabel.innerText = "Impôt estimé à payer (QC+Féd)";
+            impotPayerEl.classList.add('text-capital');
+            resultBox.classList.add('bg-blue-50', 'border-blue-200');
+
+        } else if (gainOuPerteNet < 0) {
+            // C'est une perte NETTE (La transaction actuelle était une perte, ou c'est ce qui reste de la perte antérieure)
+            inclusionLine.classList.add('bg-red-50');
+            document.getElementById('inclusionLabel').innerText = "Perte Nette Déductible (50% de la Perte Nette) :";
+            impotLabel.innerText = "Réduction d'impôt potentielle";
+            impotPayerEl.classList.add('text-loss');
+            resultBox.classList.add('bg-red-50', 'border-red-200');
+
+        } else {
+            // Zéro
+            document.getElementById('inclusionLabel').innerText = "Montant Imposable (50% de l'inclusion) :";
+            impotLabel.innerText = "Impôt estimé à payer (QC+Féd)";
+            impotPayerEl.classList.add('text-slate-800');
+        }
+    }
+
+    // Lancer le calcul au chargement
+    calculerCapital();
+</script>
+
+</body>
+</html>
