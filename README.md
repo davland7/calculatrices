@@ -23,7 +23,7 @@ Cet outil puissant illustre le **coût réel** des frais de gestion (RFG) des fo
 ### Fonctionnalités Clés :
 
 * Calcule la perte totale en croissance composée sur l'horizon de temps.
-* Détermine le **montant précis à ajouter** à vos cotisations (annuel, mensuel, aux 2 semaines, ou hebdomadaire) pour compenser les frais de la première année et maintenir votre capital initial.
+* Détermine le **montant précis à ajouter** à vos cotisations (annuel, mensuel, aux 2 semaines, ou hebdomadaire) pour compenser les frais de la première année.
 
 ### 🔗 Accès direct à l'outil 2
 
@@ -31,6 +31,21 @@ Cet outil puissant illustre le **coût réel** des frais de gestion (RFG) des fo
 
 ---
 
+## 📈 3. Calculateur de Gains et Pertes en Capital
+
+Cet outil permet d'estimer rapidement l'impôt fédéral et provincial (Québec, 2025) à payer ou le crédit d'impôt potentiel lors de transactions sur des actifs non enregistrés.
+
+### Fonctionnalités Avancées :
+
+* **Compensation Automatique :** Le calculateur compense tout gain brut réalisé dans l'année par les **pertes en capital disponibles** (reportées d'années antérieures), afin d'afficher le gain net imposable et l'impôt réel à payer.
+* Le calcul tient compte de l'inclusion de 50 % des gains (ou de la déductibilité de 50 % des pertes) selon votre Taux Marginal d'Imposition (TMI) sélectionné.
+
+### 🔗 Accès direct à l'outil 3
+
+* **Calculatrice Gains en Capital :** [Estimer l'impôt sur vos gains/pertes en capital](https://davland7.github.io/calculatrices/calcul-gains-capital.html)
+
+---
+
 ## Utilisation
 
-Les deux calculateurs utilisent Tailwind CSS via CDN pour un affichage rapide et sans configuration.
+Les calculateurs utilisent Tailwind CSS via CDN pour un affichage rapide et sans configuration.
