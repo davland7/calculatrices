@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur Neutralisation Impôt - FTQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ftq: '#ffc400', // Jaune/Or approximatif du logo
+                        ftqDark: '#e6b000',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        
+        <div class="bg-slate-800 p-6 text-center">
+            <h1 class="text-2xl font-bold text-white mb-1">Calculateur FTQ</h1>
+            <p class="text-slate-400 text-sm">Neutralisez l'impôt sur vos intérêts</p>
+        </div>
+
+        <div class="p-6 space-y-6">
+            
+            <div>
+                <label for="bracket" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Votre revenu imposable (approx.)
+                </label>
+                <div class="relative">
+                    <select id="bracket" onchange="calculer()" class="w-full appearance-none bg-slate-50 border border-slate-300 text-slate-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-ftq transition-colors cursor-pointer">
+                        <option value="0.2611">Moins de 53 255 $ (Taux ~26,11%)</option>
+                        <option value="0.3111">53 255 $ à 57 375 $ (Taux ~31,11%)</option>
+                        <option value="0.3612" selected>57 375 $ à 106 495 $ (Taux ~36,12%)</option>
+                        <option value="0.4112">106 495 $ à 114 750 $ (Taux ~41,12%)</option>
+                        <option value="0.4571">114 750 $ à 129 590 $ (Taux ~45,71%)</option>
+                        <option value="0.4746">129 590 $ à 177 882 $ (Taux ~47,46%)</option>
+                        <option value="0.4997">177 882 $ à 253 414 $ (Taux ~49,97%)</option>
+                        <option value="0.5331">Plus de 253 414 $ (Taux ~53,31%)</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-700">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label for="interets" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Revenus d'intérêts ($)
+                </label>
+                <div class="relative rounded-md shadow-sm">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <span class="text-slate-500 sm:text-sm">$</span>
+                    </div>
+                    <input type="number" id="interets" placeholder="2000" oninput="calculer()" class="block w-full rounded-lg border-slate-300 pl-7 py-3 bg-slate-50 focus:border-ftq focus:ring-ftq sm:text-sm transition-all focus:bg-white border focus:outline-none">
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-xl p-5 border border-slate-100 space-y-3">
+                
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-500">Impôt estimé à payer :</span>
+                    <span id="impotPayer" class="font-medium text-slate-800">0,00 $</span>
+                </div>
+
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-500">Retour fiscal (TMI + 30%) :</span>
+                    <span id="tauxRecup" class="font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">66,12%</span>
+                </div>
+
+                <div class="border-t border-slate-200 my-2"></div>
+
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-500">Cotisation requise :</span>
+                    <span id="baseRequis" class="font-medium text-slate-800">0,00 $</span>
+                </div>
+
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-green-600 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        Sécurité (+10%)
+                    </span>
+                    <span id="coussin" class="font-medium text-green-600">+ 0,00 $</span>
+                </div>
+                
+                <div class="pt-2 mt-2 border-t border-slate-200">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-800">Montant à cotiser</span>
+                        <span id="totalCotisation" class="text-2xl font-extrabold text-ftqDark">0,00 $</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="warningMsg" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-r shadow-sm animate-pulse">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-xs text-red-700">
+                            Attention : Vous dépassez le plafond de 5 000 $. Le crédit de 30% ne s'applique plus sur l'excédent.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-xs text-center text-slate-400 mt-4">
+                Basé sur les taux combinés 2025 (QC+Fédéral). <br>Ceci est une estimation.
+            </p>
+
+        </div>
+    </div>
+
+<script>
+    function calculer() {
+        const inputInterets = document.getElementById('interets');
+        let interets = parseFloat(inputInterets.value);
+        let tmi = parseFloat(document.getElementById('bracket').value);
+
+        if (isNaN(interets) || interets < 0) {
+            interets = 0;
+        }
+
+        // Calculs
+        let impotEstime = interets * tmi;
+        let retourParDollar = tmi + 0.30;
+        let cotisationBase = impotEstime / retourParDollar;
+        let coussin = cotisationBase * 0.10;
+        let cotisationTotale = cotisationBase + coussin;
+
+        // Formatage CAD
+        const fmt = new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' });
+
+        // Mise à jour DOM
+        document.getElementById('impotPayer').innerText = fmt.format(impotEstime);
+        document.getElementById('tauxRecup').innerText = (retourParDollar * 100).toFixed(2) + "%";
+        document.getElementById('baseRequis').innerText = fmt.format(cotisationBase);
+        document.getElementById('coussin').innerText = "+ " + fmt.format(coussin);
+        document.getElementById('totalCotisation').innerText = fmt.format(cotisationTotale);
+
+        // Gestion Alerte
+        const warningMsg = document.getElementById('warningMsg');
+        const totalDisplay = document.getElementById('totalCotisation');
+
+        if (cotisationTotale > 5000) {
+            warningMsg.classList.remove('hidden');
+            totalDisplay.classList.replace('text-ftqDark', 'text-red-600');
+        } else {
+            warningMsg.classList.add('hidden');
+            if(totalDisplay.classList.contains('text-red-600')){
+                totalDisplay.classList.replace('text-red-600', 'text-ftqDark');
+            }
+        }
+    }
+    
+    // Initialisation
+    calculer();
+</script>
+
+</body>
+</html>
