@@ -46,6 +46,6 @@ Cet outil permet d'estimer rapidement l'impôt fédéral et provincial (Québec,
 
 ---
 
-## Utilisation
+## Utilisation H50UqU_mVTOWEvD
 
 Les calculateurs utilisent Tailwind CSS via CDN pour un affichage rapide et sans configuration.
